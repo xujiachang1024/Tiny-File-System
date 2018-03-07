@@ -22,8 +22,7 @@ public class ChunkServer implements ChunkServerInterface {
 	 * Initialize the chunk server
 	 */
 	public ChunkServer() {
-		System.out.println(
-				"Constructor of ChunkServer is invoked:  Part 1 of TinyFS must implement the body of this method.");
+		System.out.println("Constructor of ChunkServer is invoked");
 
 		// find/make the directory
 		File directory = new File(filePath);
@@ -55,7 +54,7 @@ public class ChunkServer implements ChunkServerInterface {
 	 * in the file.
 	 */
 	public String initializeChunk() {
-		System.out.println("createChunk invoked:  Part 1 of TinyFS must implement the body of this method.");
+		System.out.println("createChunk invoked");
 		counter++;
 		return String.valueOf(counter);
 	}
@@ -65,7 +64,7 @@ public class ChunkServer implements ChunkServerInterface {
 	 * should be no greater than 4KB
 	 */
 	public boolean putChunk(String ChunkHandle, byte[] payload, int offset) {
-		System.out.println("writeChunk invoked:  Part 1 of TinyFS must implement the body of this method.");
+		System.out.println("writeChunk invoked");
 		try {
 			RandomAccessFile raf = new RandomAccessFile(filePath + ChunkHandle, "rw");
 			raf.seek(offset);
@@ -82,10 +81,10 @@ public class ChunkServer implements ChunkServerInterface {
 	 * read the chunk at the specific offset
 	 */
 	public byte[] getChunk(String ChunkHandle, int offset, int NumberOfBytes) {
-		System.out.println("readChunk invoked:  Part 1 of TinyFS must implement the body of this method.");
+		System.out.println("readChunk invoked");
 		try {
-			boolean fileExists = (new File(filePath + ChunkHandle)).exists();
-			if (!fileExists) {
+			File file = new File(filePath + ChunkHandle);
+			if (!file.exists()) {
 				return null;
 			}
 
