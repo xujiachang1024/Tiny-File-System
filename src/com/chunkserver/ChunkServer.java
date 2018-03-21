@@ -3,6 +3,8 @@ package com.chunkserver;
 import com.interfaces.ChunkServerInterface;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.Arrays;
@@ -15,7 +17,8 @@ import java.util.Arrays;
  */
 
 public class ChunkServer implements ChunkServerInterface {
-	final static String filePath = "C:\\Users\\shahram\\Documents\\TinyFS-2\\csci485Disk\\"; // or C:\\newfile.txt
+//	final static String filePath = "C:\\Users\\jiachanx\\Documents\\TinyFS-2\\csci485Disk\\"; // or C:\\newfile.txt
+	final static String filePath = "C:\\Users\\shahram\\Documents\\TinyFS-2\\csci485Disk\\";
 	public static long counter;
 
 	/**
@@ -27,22 +30,23 @@ public class ChunkServer implements ChunkServerInterface {
 		// find/make the directory
 		File directory = new File(filePath);
 		if (!directory.exists()) {
+			directory.getParentFile().mkdirs();
 			directory.mkdir();
 		}
+//		System.out.println("Directory exists: " + directory.exists());
 
 		// list all the files under the directory
 		File[] files = directory.listFiles();
+//		System.out.println("Number of files under directory: " + files.length);
 
 		// retrieve the counter under the directory
-		if (files.length == 0) {
+		if (files == null || files.length == 0) {
 			counter = 0;
 		}
 		else {
 			long[] counters = new long[files.length];
 			for (int i = 0; i < counters.length; i++) {
-				if (!files[i].getName().equals(".DS_Store")) {
-					counters[i] = Long.valueOf(files[i].getName());
-				}
+				counters[i] = Long.valueOf(files[i].getName());
 			}
 			Arrays.sort(counters);
 			counter = counters[counters.length - 1];
@@ -66,15 +70,24 @@ public class ChunkServer implements ChunkServerInterface {
 	public boolean putChunk(String ChunkHandle, byte[] payload, int offset) {
 		System.out.println("writeChunk invoked");
 		try {
-			RandomAccessFile raf = new RandomAccessFile(filePath + ChunkHandle, "rw");
-			raf.seek(offset);
-			raf.write(payload, 0, payload.length);
+			String absolutePath = filePath + ChunkHandle;
+			File file = new File(absolutePath);
+			if (!file.exists()) {
+				file.getParentFile().mkdirs();
+				file.createNewFile();
+			}
+			
+			RandomAccessFile raf = new RandomAccessFile(file, "rw");
+			raf.write(payload, offset, payload.length);
 			raf.close();
 			return true;
+		} catch (FileNotFoundException fnfe) {
+			fnfe.printStackTrace();
+			return false;
 		} catch (IOException ioe) {
 			ioe.printStackTrace();
 			return false;
-		}
+		} 
 	}
 
 	/**
@@ -83,17 +96,20 @@ public class ChunkServer implements ChunkServerInterface {
 	public byte[] getChunk(String ChunkHandle, int offset, int NumberOfBytes) {
 		System.out.println("readChunk invoked");
 		try {
-			File file = new File(filePath + ChunkHandle);
+			String absolutePath = filePath + ChunkHandle;
+			File file = new File(absolutePath);
 			if (!file.exists()) {
 				return null;
 			}
 
 			byte[] retrievedData = new byte[NumberOfBytes];
-			RandomAccessFile raf = new RandomAccessFile(filePath + ChunkHandle, "rw");
-			raf.seek(offset);
-			raf.read(retrievedData, 0, NumberOfBytes);
+			RandomAccessFile raf = new RandomAccessFile(file, "r");
+			raf.read(retrievedData, offset, NumberOfBytes);
 			raf.close();
 			return retrievedData;
+		} catch (FileNotFoundException fnfe) {
+			fnfe.printStackTrace();
+			return null;
 		} catch (IOException ioe) {
 			ioe.printStackTrace();
 			return null;
