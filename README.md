@@ -1,2 +1,2 @@
-# Tiny-File-System
-A bare-bone implementation of the Google File System
+# Tiny File System
+A miniaturized networked implementation of the Google File System
