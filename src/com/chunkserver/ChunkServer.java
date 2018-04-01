@@ -4,10 +4,15 @@ import com.interfaces.ChunkServerInterface;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.RandomAccessFile;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.Arrays;
+import java.util.Random;
+import java.util.Vector;
 
 /**
  * implementation of interfaces at the chunkserver side
@@ -16,10 +21,12 @@ import java.util.Arrays;
  *
  */
 
-public class ChunkServer implements ChunkServerInterface {
-//	final static String filePath = "C:\\Users\\jiachanx\\Documents\\TinyFS-2\\csci485Disk\\"; // or C:\\newfile.txt
-	final static String filePath = "C:\\Users\\shahram\\Documents\\TinyFS-2\\csci485Disk\\";
+public class ChunkServer extends Thread implements ChunkServerInterface {
+	final static String filePath = "C:\\Users\\jiachanx\\Documents\\TinyFS-2\\csci485Disk\\"; // or C:\\newfile.txt
+//	final static String filePath = "C:\\Users\\shahram\\Documents\\TinyFS-2\\csci485Disk\\";
 	public static long counter;
+	private ServerSocket serverSocket;
+	private Vector<ServerThread> serverThreads;
 
 	/**
 	 * Initialize the chunk server
@@ -51,6 +58,69 @@ public class ChunkServer implements ChunkServerInterface {
 			Arrays.sort(counters);
 			counter = counters[counters.length - 1];
 		}
+		
+		// start server
+		int port = 1024;
+		boolean portOccupied = true;
+		Random random = new Random();
+		while (portOccupied) {
+			port = random.nextInt(48151 - 1024) + 1024;
+			try {
+				serverSocket = new ServerSocket(port);
+				portOccupied = false;
+			} catch (IOException ioe) {
+				System.out.println("Warning: ChunkServer finds port " + port + " occupied, trying a new port...");
+			}
+		}
+		
+		// write selected port into file
+		FileWriter fw = null;
+		PrintWriter pw = null;
+		try {
+			fw = new FileWriter("port.txt");
+			pw = new PrintWriter(fw);
+			pw.println(port);
+			pw.flush();
+			System.out.println("Success: ChunkServer writes port " + port + " into file");
+		} catch (IOException ioe) {
+			System.out.println("Error: ChunkServer fails to write selected port into file!");
+		} finally {
+			if (pw != null) {
+				try {
+					pw.close();
+				} catch (Exception e) {}
+			}
+			if (fw != null) {
+				try {
+					fw.close();
+				} catch (Exception e) {}
+			}
+		}
+		
+		serverThreads = new Vector<ServerThread>();
+		this.start();
+		System.out.println("Success: ChunkServer is constructed and listening...");
+	}
+	
+	public void removeServerThread(ServerThread serverThread) {
+		serverThreads.remove(serverThread);
+		System.out.println("Message: ChunkServer removes 1 ServerThread");
+	}
+	
+	@Override
+	public void run() {
+		while (true) {
+			try {
+				Socket clientSocket = serverSocket.accept();
+//				System.out.println("Success: ChunkServer accepts Client " + clientSocket.getInetAddress());
+				ServerThread serverThread = new ServerThread(this, clientSocket);
+				serverThreads.add(serverThread);
+				System.out.println("Success: ChunkServer connects to Client " + clientSocket.getInetAddress());
+			} catch (IOException ioe) {
+				System.out.println("Error: ChunkServer fails to connect to Client!");
+				ioe.printStackTrace();
+			}
+		}
 	}
 
 	/**
@@ -78,7 +148,8 @@ public class ChunkServer implements ChunkServerInterface {
 			}
 			
 			RandomAccessFile raf = new RandomAccessFile(file, "rw");
-			raf.write(payload, offset, payload.length);
+			raf.seek(offset);
+			raf.write(payload, 0, payload.length);
 			raf.close();
 			return true;
 		} catch (FileNotFoundException fnfe) {
@@ -104,7 +175,8 @@ public class ChunkServer implements ChunkServerInterface {
 
 			byte[] retrievedData = new byte[NumberOfBytes];
 			RandomAccessFile raf = new RandomAccessFile(file, "r");
-			raf.read(retrievedData, offset, NumberOfBytes);
+			raf.seek(offset);
+			raf.read(retrievedData, 0, NumberOfBytes);
 			raf.close();
 			return retrievedData;
 		} catch (FileNotFoundException fnfe) {
@@ -116,4 +188,7 @@ public class ChunkServer implements ChunkServerInterface {
 		}
 	}
 
+	public static void main(String [] args) {
+		new ChunkServer();
+	}
 }
