@@ -21,16 +21,16 @@ public class ServerThread extends Thread {
 	private ObjectOutputStream oos;
 	
 	public ServerThread(ChunkServer chunkServer, Socket clientSocket) {
-		System.out.println("Constructor of ServerThread is invoked");
+		chunkServer.log("Constructor of ServerThread is invoked");
 		try {
 			this.chunkServer = chunkServer;
 			this.clientSocket = clientSocket;
-//			System.out.println("Message: ServerThread stores member variables");
+//			chunkServer.log("Message: ServerThread stores member variables");
 			this.oos = new ObjectOutputStream(clientSocket.getOutputStream());
 			this.ois = new ObjectInputStream(clientSocket.getInputStream());
-//			System.out.println("Message: ServerThread creates ois & oos");
+//			chunkServer.log("Message: ServerThread creates ois & oos");
 			this.start();
-			System.out.println("Success: ServerThread is constructed and running at " + clientSocket.getInetAddress());
+			this.chunkServer.log("Success: ServerThread is constructed and running at " + clientSocket.getInetAddress());
 		} catch (IOException ioe) {
 			ioe.printStackTrace();
 		}
@@ -46,41 +46,39 @@ public class ServerThread extends Thread {
 				if (obj instanceof InitChunkRequest) {
 					@SuppressWarnings("unused")
 					InitChunkRequest icr = (InitChunkRequest)obj;
-					System.out.println("Success: ChunkServer receives InitChunkRequest from Client " + clientSocket.getInetAddress());
+					chunkServer.log("Success: ChunkServer receives InitChunkRequest from Client " + clientSocket.getInetAddress());
 					String ChunkHandle = chunkServer.initializeChunk();
 					InitChunkFeedback icf = new InitChunkFeedback(ChunkHandle);
 					oos.writeObject(icf);
 					oos.flush();
-					System.out.println("Success: ChunkServer sends InitChunkFeedback to Client " + clientSocket.getInetAddress());
+					chunkServer.log("Success: ChunkServer sends InitChunkFeedback to Client " + clientSocket.getInetAddress());
 				}
 				
 				if (obj instanceof ReadChunkRequest) {
 					ReadChunkRequest rcr = (ReadChunkRequest)obj;
-					System.out.println("Success: ChunkServer receives ReadChunkRequest from Client " + clientSocket.getInetAddress());
+					chunkServer.log("Success: ChunkServer receives ReadChunkRequest from Client " + clientSocket.getInetAddress());
 					byte[] retrievedData = chunkServer.getChunk(rcr.ChunkHandle(), rcr.offset(), rcr.NumberOfBytes());
 					ReadChunkFeedback rcf = new ReadChunkFeedback(retrievedData);
 					oos.writeObject(rcf);
 					oos.flush();
-					System.out.println("Success: ChunkServer sends ReadChunkFeedback to Client " + clientSocket.getInetAddress());
+					chunkServer.log("Success: ChunkServer sends ReadChunkFeedback to Client " + clientSocket.getInetAddress());
 				}
 				
 				if (obj instanceof WriteChunkRequest) {
 					WriteChunkRequest wcr = (WriteChunkRequest)obj;
-					System.out.println("Success: ChunkServer receives WriteChunkRequest from Client " + clientSocket.getInetAddress());
+					chunkServer.log("Success: ChunkServer receives WriteChunkRequest from Client " + clientSocket.getInetAddress());
 					boolean writeSuccess = chunkServer.putChunk(wcr.ChunkHandle(), wcr.payload(), wcr.offset());
 					WriteChunkFeedback wcf = new WriteChunkFeedback(writeSuccess);
 					oos.writeObject(wcf);
 					oos.flush();
-					System.out.println("Success: ChunkServer sends WriteChunkFeedback to Client " + clientSocket.getInetAddress());
+					chunkServer.log("Success: ChunkServer sends WriteChunkFeedback to Client " + clientSocket.getInetAddress());
 				}
 			}
 		} catch (SocketException se) {
 			chunkServer.removeServerThread(this);
 		} catch (ClassNotFoundException cnfe) {
-			// TODO Auto-generated catch block
 			cnfe.printStackTrace();
 		} catch (IOException ioe) {
-			// TODO Auto-generated catch block
 			ioe.printStackTrace();
 		}
 	}

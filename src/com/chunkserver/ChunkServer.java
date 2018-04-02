@@ -10,6 +10,7 @@ import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Random;
 import java.util.Vector;
@@ -32,7 +33,7 @@ public class ChunkServer extends Thread implements ChunkServerInterface {
 	 * Initialize the chunk server
 	 */
 	public ChunkServer() {
-		System.out.println("Constructor of ChunkServer is invoked");
+		this.log("Constructor of ChunkServer is invoked");
 
 		// find/make the directory
 		File directory = new File(filePath);
@@ -40,11 +41,11 @@ public class ChunkServer extends Thread implements ChunkServerInterface {
 			directory.getParentFile().mkdirs();
 			directory.mkdir();
 		}
-//		System.out.println("Directory exists: " + directory.exists());
+//		this.log("Directory exists: " + directory.exists());
 
 		// list all the files under the directory
 		File[] files = directory.listFiles();
-//		System.out.println("Number of files under directory: " + files.length);
+//		this.log("Number of files under directory: " + files.length);
 
 		// retrieve the counter under the directory
 		if (files == null || files.length == 0) {
@@ -69,7 +70,7 @@ public class ChunkServer extends Thread implements ChunkServerInterface {
 				serverSocket = new ServerSocket(port);
 				portOccupied = false;
 			} catch (IOException ioe) {
-				System.out.println("Warning: ChunkServer finds port " + port + " occupied, trying a new port...");
+				this.log("Warning: ChunkServer finds port " + port + " occupied, trying a new port...");
 			}
 		}
 		
@@ -81,9 +82,9 @@ public class ChunkServer extends Thread implements ChunkServerInterface {
 			pw = new PrintWriter(fw);
 			pw.println(port);
 			pw.flush();
-			System.out.println("Success: ChunkServer writes port " + port + " into file");
+			this.log("Success: ChunkServer writes port " + port + " into file");
 		} catch (IOException ioe) {
-			System.out.println("Error: ChunkServer fails to write selected port into file!");
+			this.log("Error: ChunkServer fails to write selected port into file!");
 		} finally {
 			if (pw != null) {
 				try {
@@ -99,12 +100,36 @@ public class ChunkServer extends Thread implements ChunkServerInterface {
 		
 		serverThreads = new Vector<ServerThread>();
 		this.start();
-		System.out.println("Success: ChunkServer is constructed and listening...");
+		this.log("Success: ChunkServer is constructed and listening...");
+	}
+	
+	public void log(String message) {
+		FileWriter fw = null;
+		PrintWriter pw = null;
+		try {
+			fw = new FileWriter("serverLog.txt", true);
+			pw = new PrintWriter(fw);
+			pw.println((new Timestamp(System.currentTimeMillis())) + " | " + message);
+			pw.flush();
+		} catch (IOException ioe) {
+			ioe.printStackTrace();
+		} finally {
+			if (pw != null) {
+				pw.close();
+			}
+			if (fw != null) {
+				try {
+					fw.close();
+				} catch (IOException ioe) {
+					ioe.printStackTrace();
+				}
+			}
+		}
 	}
 	
 	public void removeServerThread(ServerThread serverThread) {
 		serverThreads.remove(serverThread);
-		System.out.println("Message: ChunkServer removes 1 ServerThread");
+		this.log("Message: ChunkServer removes 1 ServerThread");
 	}
 	
 	@Override
@@ -112,12 +137,12 @@ public class ChunkServer extends Thread implements ChunkServerInterface {
 		while (true) {
 			try {
 				Socket clientSocket = serverSocket.accept();
-//				System.out.println("Success: ChunkServer accepts Client " + clientSocket.getInetAddress());
+//				this.log("Success: ChunkServer accepts Client " + clientSocket.getInetAddress());
 				ServerThread serverThread = new ServerThread(this, clientSocket);
 				serverThreads.add(serverThread);
-				System.out.println("Success: ChunkServer connects to Client " + clientSocket.getInetAddress());
+				this.log("Success: ChunkServer connects to Client " + clientSocket.getInetAddress());
 			} catch (IOException ioe) {
-				System.out.println("Error: ChunkServer fails to connect to Client!");
+				this.log("Error: ChunkServer fails to connect to Client!");
 				ioe.printStackTrace();
 			}
 		}
@@ -128,7 +153,7 @@ public class ChunkServer extends Thread implements ChunkServerInterface {
 	 * in the file.
 	 */
 	public String initializeChunk() {
-		System.out.println("createChunk invoked");
+		this.log("createChunk invoked");
 		counter++;
 		return String.valueOf(counter);
 	}
@@ -138,7 +163,7 @@ public class ChunkServer extends Thread implements ChunkServerInterface {
 	 * should be no greater than 4KB
 	 */
 	public boolean putChunk(String ChunkHandle, byte[] payload, int offset) {
-		System.out.println("writeChunk invoked");
+		this.log("writeChunk invoked");
 		try {
 			String absolutePath = filePath + ChunkHandle;
 			File file = new File(absolutePath);
@@ -165,7 +190,7 @@ public class ChunkServer extends Thread implements ChunkServerInterface {
 	 * read the chunk at the specific offset
 	 */
 	public byte[] getChunk(String ChunkHandle, int offset, int NumberOfBytes) {
-		System.out.println("readChunk invoked");
+		this.log("readChunk invoked");
 		try {
 			String absolutePath = filePath + ChunkHandle;
 			File file = new File(absolutePath);
