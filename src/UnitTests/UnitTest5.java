@@ -41,6 +41,7 @@ public class UnitTest5 {
 		Client client = new Client();
 		TestReadAndWrite trw = new TestReadAndWrite();
 		MyChunks = trw.createFile(fin);
+		System.out.println("Checkpoint: TestReadAndWrite is successeful!");
 		File fout = new File(outputFile);
 		FileOutputStream output = new FileOutputStream(fout);
 		for (int i = 0; i < MyChunks.length; i++) {
@@ -54,6 +55,7 @@ public class UnitTest5 {
 			}
 		}
 		output.close();
+		System.out.println("Checkpoint: Image reading is successeful!");
 		// compare the contents of both files and determine whether they are the same
 		boolean isSame = FileUtils.contentEquals(fin, fout);
 		if (isSame == true) {

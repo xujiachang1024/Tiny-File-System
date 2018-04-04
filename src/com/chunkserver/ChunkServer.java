@@ -2,8 +2,10 @@ package com.chunkserver;
 
 import com.interfaces.ChunkServerInterface;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -23,8 +25,8 @@ import java.util.Vector;
  */
 
 public class ChunkServer extends Thread implements ChunkServerInterface {
-	final static String filePath = "C:\\Users\\jiachanx\\Documents\\TinyFS-2\\csci485Disk\\"; // or C:\\newfile.txt
-//	final static String filePath = "C:\\Users\\shahram\\Documents\\TinyFS-2\\csci485Disk\\";
+//	final static String filePath = "C:\\Users\\jiachanx\\Documents\\TinyFS-2\\csci485Disk\\"; // or C:\\newfile.txt
+	final static String filePath = "C:\\Users\\shahram\\Documents\\TinyFS-2\\csci485Disk\\";
 	public static long counter;
 	private ServerSocket serverSocket;
 	private Vector<ServerThread> serverThreads;

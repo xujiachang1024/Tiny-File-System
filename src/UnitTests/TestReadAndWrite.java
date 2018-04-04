@@ -16,7 +16,8 @@ import com.client.Client;
 
 public class TestReadAndWrite {
 
-	public static ChunkServer cs = new ChunkServer();
+//	public static ChunkServer cs = new ChunkServer();
+	public static final int ChunkSize = 4 * 1024;
 	public static Client client = new Client();
 
 	/**
@@ -29,14 +30,14 @@ public class TestReadAndWrite {
 			RandomAccessFile raf = new RandomAccessFile(f.getAbsolutePath(), "rw");
 			raf.seek(0);
 			long size = f.length();
-			int num = (int) Math.ceil((double) size / cs.ChunkSize);
+			int num = (int) Math.ceil((double) size / ChunkSize);
 			String[] ChunkHandles = new String[num];
 			String handle = null;
-			byte[] chunkArr = new byte[cs.ChunkSize];
+			byte[] chunkArr = new byte[ChunkSize];
 			for (int i = 0; i < num; i++) {
 				handle = client.initializeChunk();
 				ChunkHandles[i] = handle;
-				raf.read(chunkArr, 0, cs.ChunkSize);
+				raf.read(chunkArr, 0, ChunkSize);
 				boolean isWritten = client.putChunk(handle, chunkArr, 0);
 				if (isWritten == false) {
 					throw new IOException("Cannot write a chunk to the chunk server!");

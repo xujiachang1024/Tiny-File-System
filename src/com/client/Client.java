@@ -106,7 +106,7 @@ public class Client extends Thread implements ClientInterface {
 			oos.writeObject(new InitChunkRequest());
 			oos.flush();
 			this.log("Success: Client sends InitChunkRequest from " + clientSocket.getInetAddress());
-			while (true) {
+			{
 //				this.log("Client is waiting for InitChunkFeedback...");
 				Object obj = ois.readObject();
 				if (obj instanceof InitChunkFeedback) {
@@ -135,7 +135,7 @@ public class Client extends Thread implements ClientInterface {
 			oos.writeObject(new WriteChunkRequest(ChunkHandle, payload, offset));
 			oos.flush();
 			this.log("Success: Client sends WriteChunkRequest from " + clientSocket.getInetAddress());
-			while (true) {
+			{
 				Object obj = ois.readObject();
 				if (obj instanceof WriteChunkFeedback) {
 					WriteChunkFeedback wcf = (WriteChunkFeedback)obj;
@@ -163,7 +163,7 @@ public class Client extends Thread implements ClientInterface {
 			oos.writeObject(new ReadChunkRequest(ChunkHandle, offset, NumberOfBytes));
 			oos.flush();
 			this.log("Success: Client sends ReadChunkRequest from " + clientSocket.getInetAddress());
-			while (true) {
+			{
 				Object obj = ois.readObject();
 				if (obj instanceof ReadChunkFeedback) {
 					ReadChunkFeedback rcf = (ReadChunkFeedback)obj;
